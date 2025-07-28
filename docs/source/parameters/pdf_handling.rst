@@ -15,7 +15,7 @@ PDF and images handling
       - Description
 
     * - pdf_with_text_layer
-      - true, false, tabby, auto, auto_tabby
+      - true, false, tabby, auto, auto_tabby, bad_encoding
       - auto_tabby
       - * :meth:`dedoc.DedocManager.parse`
         * :meth:`dedoc.readers.PdfAutoReader.can_read`, :meth:`dedoc.readers.PdfTxtlayerReader.can_read`, :meth:`dedoc.readers.PdfTabbyReader.can_read`
@@ -47,6 +47,12 @@ PDF and images handling
               If the document doesn't have a textual layer (it is an image, scanned document), :class:`dedoc.readers.PdfImageReader` will be used.
               It is highly recommended to use this option value for any PDF document parsing.
 
+            * **bad_encoding** -- automatic correction of PDF with textual layer but broken encoding (for Russian and English languages).
+              Use this option if you are sure that PDF file has a textual layer with broken encoding,
+              i.e. its text is copyable, but incorrect (gibberish).
+              Otherwise use :class:`dedoc.readers.PdfAutoReader` or :class:`dedoc.readers.PdfTabbyReader`,
+              because it's faster and it will provide better results on usual PDF files.
+
     * - fast_textual_layer_detection
       - true, false
       - false
@@ -57,6 +63,17 @@ PDF and images handling
 
         * **true** -- if any text is detected in a PDF file, Dedoc assumes that textual layer is detected and it is correct. Much faster but less accurate.
         * **false** -- use the textual layer classifier to detect textual layer and prove its correctness.
+
+    * - each_page_textual_layer_detection
+      - true, false
+      - false
+      - * :meth:`dedoc.readers.PdfAutoReader.read`
+        * :meth:`dedoc.DedocManager.parse`
+        * :meth:`dedoc.readers.ReaderComposition.read`
+      - Enable textual layer detection separately on each document page. Works only when **auto** or **auto_tabby** is selected at **pdf_with_text_layer**.
+
+        * **true** -- classify text of each page if it's correct or not. Classification algorythm depends on the **fast_textual_layer_detection** parameter. This option is recommended for PDF documents with scanned (or corrupted) pages in the middle.
+        * **false** -- classify text of only first 8 pages if it's correct or not. First page is handled separately. Much faster but less accurate.
 
     * - language
       - rus, eng, rus+eng, fra, spa
