@@ -53,16 +53,17 @@ PDF and images handling
               Otherwise use :class:`dedoc.readers.PdfAutoReader` or :class:`dedoc.readers.PdfTabbyReader`,
               because it's faster and it will provide better results on usual PDF files.
 
-    * - fast_textual_layer_detection
-      - true, false
-      - false
+    * - textual_layer_classifier
+      - ml, simple, letter
+      - ml
       - * :meth:`dedoc.readers.PdfAutoReader.read`
         * :meth:`dedoc.DedocManager.parse`
         * :meth:`dedoc.readers.ReaderComposition.read`
-      - Enable fast textual layer detection. Works only when **auto** or **auto_tabby** is selected at **pdf_with_text_layer**.
+      - Type of the classifier for textual layer detection. Works only when **auto** or **auto_tabby** is selected at **pdf_with_text_layer**.
 
-        * **true** -- if any text is detected in a PDF file, Dedoc assumes that textual layer is detected and it is correct. Much faster but less accurate.
-        * **false** -- use the textual layer classifier to detect textual layer and prove its correctness.
+        * **ml** -- use ML textual layer classifier trained on heuristic features, works only for Russian and English languages.
+        * **simple** -- if any text is detected in a PDF file, Dedoc assumes that textual layer is detected and it is correct. Much faster but less accurate.
+        * **letter** -- textual layer is considered as correct if percent of letters in the text > 50%.
 
     * - each_page_textual_layer_detection
       - true, false
@@ -167,6 +168,18 @@ PDF and images handling
         The table recognition method is used in :class:`dedoc.readers.PdfImageReader` and :class:`dedoc.readers.PdfTxtlayerReader`.
         If the document has a textual layer, it is recommended to use :class:`dedoc.readers.PdfTabbyReader`,
         in this case tables will be parsed much easier and faster.
+
+    * - table_type
+      - "", wo_external_bounds, one_cell_table, split_last_column and their combinaton
+      - ""
+      - * :meth:`dedoc.DedocManager.parse`
+        * :meth:`dedoc.readers.PdfAutoReader.read`, :meth:`dedoc.readers.PdfTxtlayerReader.read`, :meth:`dedoc.readers.PdfImageReader.read`
+        * :meth:`dedoc.readers.ReaderComposition.read`
+      - Setting up the table recognition method. The table recognition method is used in :class:`dedoc.readers.PdfImageReader` and
+        :class:`dedoc.readers.PdfTxtlayerReader`. The value of the parameter specifies the type of tables recognized when processed by
+        class :class:`~dedoc.readers.pdf_reader.pdf_image_reader.table_recognizer.table_recognizer.TableRecognizer`. More details about each parameter value
+        are disclosed in the class :class:`dedoc.readers.pdf_reader.data_classes.tables.table_type.TableTypeAdditionalOptions` description.
+        You can use combination of values (for example, `wo_external_bounds+one_cell_table`).
 
     * - need_gost_frame_analysis
       - True, False
