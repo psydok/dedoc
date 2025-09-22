@@ -207,7 +207,7 @@ class TestRecognizedTable(AbstractTestApiDocReader):
 
     def test_multipage_gost_table_image(self) -> None:
         file_name = "gost_multipage_table.pdf"
-        result = self._send_request(file_name, data={"need_gost_frame_analysis": "True"})  # don't pass pdf_with_text_layer to check condition in PDFBaseReader
+        result = self._send_request(file_name, data={"need_gost_frame_analysis": "True", "pdf_with_text_layer": "false"})
         self.assertTrue(len(result["content"]["tables"][0]["cells"]) > 35)
         target_bbox_dict = {
             "x_top_left": 0.14,
@@ -293,3 +293,29 @@ class TestRecognizedTable(AbstractTestApiDocReader):
         row0 = self._get_text_of_row(table[0])
 
         self.assertEqual(row0[:2], ["Номер", "Извещения\nмореплавателям"])
+
+    def test_multipage_tables_0(self) -> None:
+        result = self._send_request("MIPS64.pdf", data=dict(language="rus+eng", pages="16:22"))
+
+        self.assertEqual(2, len(result["content"]["tables"]))
+
+        header_of_table_0 = self._get_text_of_row(result["content"]["tables"][0]["cells"][0])
+        self.assertEqual(header_of_table_0, ["Symbol", "Meaning"])
+
+        header_of_table_1 = self._get_text_of_row(result["content"]["tables"][1]["cells"][0])
+        self.assertEqual(header_of_table_1, ["Read/Write\nNotation", "Hardware Interpretation", "Software Interpretation"])
+
+    def test_multipage_tables_1(self) -> None:
+        result = self._send_request("MIPS64.pdf", data=dict(language="rus+eng", pages="78:79"))
+
+        self.assertEqual(2, len(result["content"]["tables"]))
+
+    def test_multipage_tables_2(self) -> None:
+        result = self._send_request("MIPS64.pdf", data=dict(language="rus+eng", pages="78:79", pdf_with_text_layer="false"))
+
+        self.assertEqual(2, len(result["content"]["tables"]))
+
+    def test_multipage_tables_3(self) -> None:
+        result = self._send_request("MIPS64.pdf", data=dict(language="rus+eng", pages="394:395"))
+
+        self.assertEqual(2, len(result["content"]["tables"]))

@@ -73,7 +73,8 @@ class OnePageTableExtractor(BaseTableExtractor):
         for i, row in enumerate(matrix):
             matrix[i] = sorted(row, key=lambda cell: cell.bbox.x_top_left, reverse=False)
 
-        matrix_table = ScanTable(cells=matrix, bbox=table_tree.cell_box, page_number=self.page_number)
+        page_height, page_width = self.image.shape[:2]
+        matrix_table = ScanTable(cells=matrix, bbox=table_tree.cell_box, page_number=self.page_number, page_width=page_width, page_height=page_height)
 
         return matrix_table
 
@@ -88,7 +89,8 @@ class OnePageTableExtractor(BaseTableExtractor):
                 table.cells = self.handle_cells(table.cells, table_type)
                 tables.append(table)
             except Exception as ex:
-                self.logger.warning(f"Warning: unrecognized table into page {self.page_number}. {ex}")
+                if self.config.get("debug_mode", False):
+                    self.logger.warning(f"Warning: unrecognized table into page {self.page_number}. {ex}")
         return tables
 
     def handle_cells(self, cells: List[List[Cell]], table_type: str = "") -> List[List[Cell]]:
