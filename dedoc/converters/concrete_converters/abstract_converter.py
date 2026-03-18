@@ -60,19 +60,30 @@ class AbstractConverter(ABC):
     def _run_subprocess(self, command: List[str], filename: str, expected_path: str) -> None:
         import os
         import subprocess
-
+    
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            conversion_results = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=self.timeout)
-            error_message = conversion_results.stderr.decode().strip()
-            if len(error_message) > 0:
+            stdout, stderr = process.communicate(timeout=self.timeout)
+            error_message = stderr.decode().strip()
+    
+            if error_message:
                 if os.path.isfile(expected_path):
                     self.logger.warning(f"Warning on file {filename}\n{error_message}")
                 else:
                     error_message = f"Could not convert file {filename}\n{error_message}"
                     self.logger.error(error_message)
                     raise ConversionError(msg=error_message)
-
+    
         except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
             message = f"Conversion of the {filename} hadn't terminated after {self.timeout} seconds"
             self.logger.error(message)
             raise ConversionError(msg=message)
+        except Exception as e:
+            self.logger.error(f"An error occurred: {str(e)}")
+            raise
+        finally:
+            if process.poll() is None:
+                process.terminate()
+            process.wait()
