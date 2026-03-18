@@ -19,17 +19,18 @@ def _jar_path() -> str:
 
 def _run(path: str = None, encoding: str = "utf-8") -> bytes:
     args = ["java"] + ["-jar", _jar_path(), "-i", path]
-
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
     try:
-        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL, check=True)
-        if result.stderr:
-            logger.warning(f"Got stderr: {result.stderr.decode(encoding)}")
-        return result.stdout
+        stdout, stderr = process.communicate()
+        if stderr:
+            logger.warning(f"Got stderr: {stderr.decode(encoding)}")
+        return stdout
     except FileNotFoundError:
         raise JavaNotFoundError(JAVA_NOT_FOUND_ERROR)
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error from tabby-java:\n{e.stderr.decode(encoding)}\n")
-        raise
+    finally:
+        if process.poll() is None:
+            process.terminate()
+        process.wait()
 
 
 def extract(path: str) -> dict:
